@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
-import 'package:app/core/theme.dart';
-import 'package:app/models/product.dart';
-import 'package:app/services/api_service.dart';
-import 'package:app/screens/admin/add_edit_product_screen.dart';
+import 'package:ecommcerapp/core/theme.dart';
+import 'package:ecommcerapp/models/product.dart';
+import 'package:ecommcerapp/services/api_service.dart';
+import 'package:ecommcerapp/screens/admin/add_edit_product_screen.dart';
 
 class ProductManagementScreen extends StatefulWidget {
   const ProductManagementScreen({super.key});
