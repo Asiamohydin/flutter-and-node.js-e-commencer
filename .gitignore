@@ -1,0 +1,9 @@
+backend/node_modules/
+build/
+dist/
+ecommcerapp/.dart_tool/
+ecommcerapp/.idea/
+ecommcerapp/.vscode/
+ecommcerapp/build/
+ecommcerapp/.DS_Store
+ecommcerapp/.env

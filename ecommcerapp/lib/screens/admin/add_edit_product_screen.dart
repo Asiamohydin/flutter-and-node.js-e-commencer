@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:app/core/theme.dart';
-import 'package:app/models/product.dart';
-import 'package:app/services/api_service.dart';
+import 'package:ecommcerapp/core/theme.dart';
+import 'package:ecommcerapp/models/product.dart';
+import 'package:ecommcerapp/services/api_service.dart';
 import 'package:iconsax/iconsax.dart';
 
 import 'package:image_picker/image_picker.dart';
