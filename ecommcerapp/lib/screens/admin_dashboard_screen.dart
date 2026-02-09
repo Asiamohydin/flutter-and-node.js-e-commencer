@@ -4,6 +4,7 @@ import 'package:ecommcerapp/services/api_service.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:ecommcerapp/screens/admin/product_management_screen.dart';
+
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
@@ -68,8 +69,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return _buildStatsLoader();
                 final stats = snapshot.data!;
-                final double totalIncome = (stats['totalIncome'] as num?)?.toDouble() ?? 0.0;
-                final int totalOrders = (stats['totalOrders'] as int?) ?? 0;
+                // Safely parse stats using tryParse to handle Strings or Numbers
+                final double totalIncome = double.tryParse(stats['totalIncome'].toString()) ?? 0.0;
+                final int totalOrders = int.tryParse(stats['totalOrders'].toString()) ?? 0;
 
                 return Column(
                   children: [
@@ -87,7 +89,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       delay: const Duration(milliseconds: 200),
                       child: GestureDetector(
                         onTap: () {
-                          // Navigate to product management
                           Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductManagementScreen()));
                         },
                         child: Container(
@@ -175,9 +176,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     String status = (order['status'] ?? 'pending').toString().toLowerCase().trim();
     Color statusColor = _getStatusColor(status);
 
+    // Safely parse total
+    final double orderTotal = double.tryParse(order['total'].toString()) ?? 0.0;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
-      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -185,9 +188,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
         ],
       ),
-      child: Column(
-        children: [
-          Row(
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.all(18),
+          childrenPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+          title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
@@ -205,17 +211,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Iconsax.sms, size: 12, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Text(
-                        order['customer_email'] ?? 'No Email',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                      ),
-                    ],
-                  ),
                 ],
               ),
               Container(
@@ -223,6 +218,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: statusColor.withOpacity(0.2)),
                 ),
                 child: Text(
                   status.toUpperCase(),
@@ -231,51 +227,104 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
             ],
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 15),
-            child: Divider(height: 1),
-          ),
-          Row(
-            children: [
-              const Icon(Iconsax.wallet_1, size: 18, color: Colors.grey),
-              const SizedBox(width: 8),
-              Text(order['payment_method'] ?? 'Manual', style: const TextStyle(fontSize: 13, color: Colors.grey)),
-              const Spacer(),
-              Text('\$${order['total']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primaryColor)),
-            ],
-          ),
-          if (status == 'pending') ...[
-            const SizedBox(height: 15),
-            Row(
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Row(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => _changeStatus(order['id'], 'cancelled'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Reject'),
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _changeStatus(order['id'], 'completed'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text('Accept Order'),
-                  ),
-                ),
+                const Icon(Iconsax.wallet_1, size: 16, color: Colors.grey),
+                const SizedBox(width: 6),
+                Text(order['payment_method'] ?? 'Manual', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                const Spacer(),
+                Text('\$${orderTotal.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppTheme.primaryColor)),
               ],
             ),
+          ),
+          children: [
+            const Divider(),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Text("Order Items:", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              ),
+            ),
+            if (order['items'] != null && (order['items'] as List).isNotEmpty)
+              ...((order['items'] as List).map((item) {
+                // Safely parse quantity and price
+                final quantity = int.tryParse(item['quantity'].toString()) ?? 0;
+                final price = double.tryParse(item['price'].toString()) ?? 0.0;
+                final total = quantity * price;
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.grey[100],
+                          image: item['image_url'] != null && item['image_url'].toString().isNotEmpty
+                              ? DecorationImage(image: NetworkImage(item['image_url']), fit: BoxFit.cover)
+                              : null,
+                        ),
+                        child: item['image_url'] == null || item['image_url'].toString().isEmpty
+                            ? const Icon(Iconsax.image, size: 16, color: Colors.grey)
+                            : null,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item['title'] ?? 'Unknown Product', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            Text('$quantity x \$${price.toStringAsFixed(2)}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                          ],
+                        ),
+                      ),
+                      Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                );
+              }).toList())
+            else
+              const Text("No items details available", style: TextStyle(color: Colors.grey, fontSize: 12)),
+            
+            if (status == 'pending') ...[
+              const SizedBox(height: 15),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => _changeStatus(order['id'], 'cancelled'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        side: const BorderSide(color: Colors.red),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Reject'),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _changeStatus(order['id'], 'completed'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Accept Order'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 10),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -358,7 +407,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     try {
       final result = await _apiService.updateOrderStatus(id, status);
       
-      // Check if the update was successful (should return the order object with an id)
       if (result != null && (result['id'] != null || result['success'] == true)) {
         _refresh();
         if (!mounted) return;

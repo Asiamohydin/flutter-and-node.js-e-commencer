@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:ecommcerapp/core/theme.dart';
@@ -20,7 +20,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
-  File? _imageFile;
+  
+  XFile? _pickedFile;
+  Uint8List? _imageBytes;
+  
   final _apiService = ApiService();
   final _picker = ImagePicker();
 
@@ -40,7 +43,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         imageQuality: 80,
       );
       if (pickedFile != null) {
-        setState(() => _imageFile = File(pickedFile.path));
+        final bytes = await pickedFile.readAsBytes();
+        setState(() {
+          _pickedFile = pickedFile;
+          _imageBytes = bytes;
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -67,18 +74,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     setState(() => _isLoading = true);
     
-    // In a real app, we would upload the image to a storage service first
-    // For now, we simulate success and update the name
+    // Upload image first if selected
+    String? newImageUrl;
+    if (_imageBytes != null && _pickedFile != null) {
+      try {
+        final filename = _pickedFile!.name;
+        final uploadResult = await _apiService.uploadImage(_imageBytes!, filename);
+        if (uploadResult['success'] == true) {
+          newImageUrl = uploadResult['imageUrl'];
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('Failed to upload image: ${uploadResult['message']}')),
+          );
+        }
+      } catch (e) {
+        // Handle error
+      }
+    }
+
     final result = await _apiService.updateProfile(
       _nameController.text.trim(),
       password: _passwordController.text.isNotEmpty ? _passwordController.text : null,
+      imageUrl: newImageUrl,
     );
     
     setState(() => _isLoading = false);
 
     if (result['success'] == true) {
       if (!mounted) return;
-      Provider.of<UserProvider>(context, listen: false).updateName(_nameController.text.trim());
+      Provider.of<UserProvider>(context, listen: false).updateProfile(
+        name: _nameController.text.trim(),
+        imageUrl: newImageUrl,
+      );
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -102,6 +129,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context).user;
+    
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -130,9 +159,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: CircleAvatar(
                       radius: 60,
                       backgroundColor: Colors.grey[100],
-                      backgroundImage: _imageFile != null 
-                        ? FileImage(_imageFile!) 
-                        : const NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop') as ImageProvider,
+                      backgroundImage: _imageBytes != null 
+                        ? MemoryImage(_imageBytes!) 
+                        : (user != null && user['image_url'] != null && user['image_url'].toString().isNotEmpty
+                            ? NetworkImage(user['image_url'])
+                            : const NetworkImage('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop')) as ImageProvider,
                     ),
                   ),
                   Positioned(

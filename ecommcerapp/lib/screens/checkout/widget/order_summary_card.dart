@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app/core/theme.dart';
+import 'package:ecommcerapp/core/theme.dart';
 
 class OrderSummaryCard extends StatelessWidget {
   final double subtotal;

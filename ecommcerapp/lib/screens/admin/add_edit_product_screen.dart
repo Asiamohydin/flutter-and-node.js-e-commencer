@@ -24,6 +24,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   late TextEditingController _priceCtrl;
   late TextEditingController _imageCtrl;
   late TextEditingController _stockCtrl;
+  String? _selectedCategory;
   bool _isLoading = false;
   bool _isUploading = false;
 
@@ -35,6 +36,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     _priceCtrl = TextEditingController(text: widget.product?.price.toString() ?? '');
     _imageCtrl = TextEditingController(text: widget.product?.imageUrl ?? '');
     _stockCtrl = TextEditingController(text: widget.product?.stock.toString() ?? '0');
+    _selectedCategory = widget.product?.category ?? 'General';
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -75,6 +77,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       'price': double.parse(_priceCtrl.text),
       'image_url': _imageCtrl.text.trim(),
       'stock': int.parse(_stockCtrl.text),
+      'category': _selectedCategory ?? 'General',
     };
 
     dynamic result;
@@ -116,6 +119,29 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
             children: [
               _buildField("Product Name", _nameCtrl, Iconsax.box, "Enter name"),
               const SizedBox(height: 20),
+              
+              const Text("Category", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Iconsax.category, color: Colors.grey),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                  hintText: "Select Category",
+                ),
+                items: ['Fashion', 'Beauty', 'Electronics', 'Jewelry', 'Home', 'Sport', 'General']
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _selectedCategory = val;
+                  });
+                },
+              ),
+              const SizedBox(height: 20),
+
               _buildField("Description", _descCtrl, Iconsax.document_text, "Enter description", maxLines: 3),
               const SizedBox(height: 20),
               _buildField("Price", _priceCtrl, Iconsax.money_3, "Enter price", keyboardType: TextInputType.number),

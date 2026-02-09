@@ -403,7 +403,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             p.category.toLowerCase().contains(_searchQuery);
                       
                       final matchesCategory = _selectedCategory == "All" || 
-                                              p.category == _selectedCategory;
+                                              p.category.toLowerCase() == _selectedCategory.toLowerCase();
 
                       return matchesSearch && matchesCategory;
                     }).toList();
@@ -445,6 +445,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       itemBuilder: (context, index) {
         final product = products[index];
+        final isOutOfStock = product.stock <= 0;
         return FadeInUp(
           delay: Duration(milliseconds: 100 * index),
           child: GestureDetector(
@@ -482,6 +483,16 @@ class _HomeScreenState extends State<HomeScreen> {
                               fit: BoxFit.cover,
                             ),
                           ),
+                          child: isOutOfStock ? Container(
+                            color: Colors.white.withOpacity(0.7),
+                            child: Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(5)),
+                                child: const Text("OUT OF STOCK", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ) : null,
                         ),
                         Positioned(
                           right: 10,
@@ -544,6 +555,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 color: AppTheme.primaryColor,
                               ),
                             ),
+                            if (!isOutOfStock)
                             GestureDetector(
                               onTap: () {
                                 Provider.of<CartProvider>(context, listen: false).addToCart(product);

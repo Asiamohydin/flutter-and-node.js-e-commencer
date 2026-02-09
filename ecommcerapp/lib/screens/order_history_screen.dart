@@ -110,8 +110,8 @@ class OrderHistoryScreen extends StatelessWidget {
                         // Items (Map-based)
                         ...order.items.map((item) {
                           final title = item['title']?.toString() ?? 'Unknown Item';
-                          final qty = (item['quantity'] as num?)?.toInt() ?? 0;
-                          final price = (item['price'] as num?)?.toDouble() ?? 0.0;
+                          final qty = int.tryParse(item['quantity'].toString()) ?? 0;
+                          final price = double.tryParse(item['price'].toString()) ?? 0.0;
                           final imageUrl = item['imageUrl']?.toString() ?? '';
 
                           return Padding(
@@ -151,7 +151,7 @@ class OrderHistoryScreen extends StatelessWidget {
                           children: [
                             const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold)),
                             Text(
-                              '\$${order.total.toStringAsFixed(2)}',
+                              '\$${double.parse((order.total).toString()).toStringAsFixed(2)}',
                               style: const TextStyle(
                                 color: AppTheme.primaryColor,
                                 fontWeight: FontWeight.bold,

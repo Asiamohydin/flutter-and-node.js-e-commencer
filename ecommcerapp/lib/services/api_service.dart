@@ -87,11 +87,12 @@ class ApiService {
     }
   }
 
-  Future<Map<String, dynamic>> updateProfile(String name, {String? password}) async {
+  Future<Map<String, dynamic>> updateProfile(String name, {String? password, String? imageUrl}) async {
     try {
       final token = await _token();
       final body = {'name': name};
       if (password != null && password.isNotEmpty) body['password'] = password;
+      if (imageUrl != null && imageUrl.isNotEmpty) body['image_url'] = imageUrl;
 
       final resp = await http.put(Uri.parse('$_base/auth/update-me'),
         headers: {'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'},

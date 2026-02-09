@@ -18,10 +18,14 @@ class CartProvider extends ChangeNotifier {
   }
 
   void addToCart(Product product) {
+    if (product.stock <= 0) return;
+
     final id = product.id;
 
     if (_items.containsKey(id)) {
-      _items[id] = _items[id]!.copyWith(quantity: _items[id]!.quantity + 1);
+      if (_items[id]!.quantity < product.stock) {
+        _items[id] = _items[id]!.copyWith(quantity: _items[id]!.quantity + 1);
+      }
     } else {
       _items[id] = CartItem(product: product, quantity: 1);
     }

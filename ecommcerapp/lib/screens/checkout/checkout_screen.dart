@@ -1,15 +1,15 @@
-import 'package:app/screens/checkout/widget/order_summary_card.dart';
-import 'package:app/screens/checkout/widget/payment_details_form.dart';
-import 'package:app/screens/checkout/widget/payment_method_tile.dart';
-import 'package:app/screens/checkout/widget/place_order_bar.dart';
-import 'package:app/screens/checkout/widget/section_title.dart';
+import 'package:ecommcerapp/screens/checkout/widget/order_summary_card.dart';
+import 'package:ecommcerapp/screens/checkout/widget/payment_details_form.dart';
+import 'package:ecommcerapp/screens/checkout/widget/payment_method_tile.dart';
+import 'package:ecommcerapp/screens/checkout/widget/place_order_bar.dart';
+import 'package:ecommcerapp/screens/checkout/widget/section_title.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:app/providers/cart_provider.dart';
-import 'package:app/providers/order_provider.dart';
-import 'package:app/core/theme.dart';
+import 'package:ecommcerapp/providers/cart_provider.dart';
+import 'package:ecommcerapp/providers/order_provider.dart';
+import 'package:ecommcerapp/core/theme.dart';
 
-enum PaymentMethod { card, paypal, googlePay }
+enum PaymentMethod { card, evc, edahab, cod }
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -29,7 +29,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final cardNameCtrl = TextEditingController();
   final cardExpiryCtrl = TextEditingController();
   final cardCvvCtrl = TextEditingController();
-  final paypalEmailCtrl = TextEditingController();
+  final phoneNumberCtrl = TextEditingController();
 
   @override
   void dispose() {
@@ -37,18 +37,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     cardNameCtrl.dispose();
     cardExpiryCtrl.dispose();
     cardCvvCtrl.dispose();
-    paypalEmailCtrl.dispose();
+    phoneNumberCtrl.dispose();
     super.dispose();
   }
 
   String get methodName {
     switch (_method) {
       case PaymentMethod.card:
-        return "Credit Card";
-      case PaymentMethod.paypal:
-        return "PayPal";
-      case PaymentMethod.googlePay:
-        return "Google Pay";
+        return "Card";
+      case PaymentMethod.evc:
+        return "EVC Plus";
+      case PaymentMethod.edahab:
+        return "eDahab";
+      case PaymentMethod.cod:
+        return "Cash on Delivery";
     }
   }
 
@@ -58,10 +60,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final last4 = digits.length >= 4 ? digits.substring(digits.length - 4) : '';
       return {"cardLast4": last4, "cardName": cardNameCtrl.text.trim()};
     }
-    if (_method == PaymentMethod.paypal) {
-      return {"paypalEmail": paypalEmailCtrl.text.trim()};
+    if (_method == PaymentMethod.evc || _method == PaymentMethod.edahab) {
+      return {"phoneNumber": phoneNumberCtrl.text.trim()};
     }
-    return {"type": "google_pay"};
+    return {"type": "cod"};
   }
 
   Future<void> _placeOrder() async {
@@ -114,24 +116,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SectionTitle('Payment Method'),
               const SizedBox(height: 12),
               PaymentMethodTile(
-                title: "Credit Card",
+                title: "Card Payment",
                 icon: Icons.credit_card,
                 selected: _method == PaymentMethod.card,
                 onTap: () => setState(() => _method = PaymentMethod.card),
               ),
               const SizedBox(height: 12),
               PaymentMethodTile(
-                title: "PayPal",
-                icon: Icons.paypal,
-                selected: _method == PaymentMethod.paypal,
-                onTap: () => setState(() => _method = PaymentMethod.paypal),
+                title: "EVC Plus",
+                icon: Icons.phone_android,
+                selected: _method == PaymentMethod.evc,
+                onTap: () => setState(() => _method = PaymentMethod.evc),
               ),
               const SizedBox(height: 12),
               PaymentMethodTile(
-                title: "Google Pay",
-                icon: Icons.payment,
-                selected: _method == PaymentMethod.googlePay,
-                onTap: () => setState(() => _method = PaymentMethod.googlePay),
+                title: "eDahab",
+                icon: Icons.account_balance_wallet,
+                selected: _method == PaymentMethod.edahab,
+                onTap: () => setState(() => _method = PaymentMethod.edahab),
+              ),
+              const SizedBox(height: 12),
+              PaymentMethodTile(
+                title: "Cash on Delivery",
+                icon: Icons.money,
+                selected: _method == PaymentMethod.cod,
+                onTap: () => setState(() => _method = PaymentMethod.cod),
               ),
 
               const SizedBox(height: 16),
@@ -142,7 +151,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 cardNameCtrl: cardNameCtrl,
                 cardExpiryCtrl: cardExpiryCtrl,
                 cardCvvCtrl: cardCvvCtrl,
-                paypalEmailCtrl: paypalEmailCtrl,
+                phoneNumberCtrl: phoneNumberCtrl,
               ),
 
               const SizedBox(height: 24),

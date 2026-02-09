@@ -20,9 +20,10 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateName(String name) {
+  void updateProfile({String? name, String? imageUrl}) {
     if (_user != null) {
-      _user!['name'] = name;
+      if (name != null) _user!['name'] = name;
+      if (imageUrl != null) _user!['image_url'] = imageUrl; // Ensure the backend returns image_url or we update it locally
       notifyListeners();
     }
   }

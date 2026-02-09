@@ -266,7 +266,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             const SizedBox(width: 20),
             Expanded(
               child: GestureDetector(
-                onTap: () {
+                onTap: widget.product.stock <= 0 ? null : () {
                   Provider.of<CartProvider>(context, listen: false).addToCart(widget.product);
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -287,20 +287,20 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                 child: Container(
                   height: 60,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
+                    color: widget.product.stock <= 0 ? Colors.grey : AppTheme.primaryColor,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primaryColor.withOpacity(0.3),
+                        color: (widget.product.stock <= 0 ? Colors.grey : AppTheme.primaryColor).withOpacity(0.3),
                         blurRadius: 10,
                         offset: const Offset(0, 5),
                       ),
                     ],
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'Add to Cart',
-                      style: TextStyle(
+                      widget.product.stock <= 0 ? 'Out of Stock' : 'Add to Cart',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

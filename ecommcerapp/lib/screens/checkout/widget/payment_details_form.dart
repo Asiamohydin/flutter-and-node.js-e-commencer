@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:app/core/theme.dart';
-import 'package:app/screens/checkout/checkout_screen.dart';
+import 'package:ecommcerapp/core/theme.dart';
+import 'package:ecommcerapp/screens/checkout/checkout_screen.dart';
 
 class PaymentDetailsForm extends StatelessWidget {
   final PaymentMethod method;
@@ -9,7 +9,7 @@ class PaymentDetailsForm extends StatelessWidget {
   final TextEditingController cardNameCtrl;
   final TextEditingController cardExpiryCtrl;
   final TextEditingController cardCvvCtrl;
-  final TextEditingController paypalEmailCtrl;
+  final TextEditingController phoneNumberCtrl;
 
   const PaymentDetailsForm({
     super.key,
@@ -18,7 +18,7 @@ class PaymentDetailsForm extends StatelessWidget {
     required this.cardNameCtrl,
     required this.cardExpiryCtrl,
     required this.cardCvvCtrl,
-    required this.paypalEmailCtrl,
+    required this.phoneNumberCtrl,
   });
 
   @override
@@ -36,18 +36,25 @@ class PaymentDetailsForm extends StatelessWidget {
           Text(_title(), style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
           if (method == PaymentMethod.card) ..._cardFields(),
-          if (method == PaymentMethod.paypal) ..._paypalFields(),
-          if (method == PaymentMethod.googlePay) ..._googlePayInfo(),
+          if (method == PaymentMethod.evc || method == PaymentMethod.edahab) ..._phoneFields(),
+          if (method == PaymentMethod.cod) ..._codInfo(),
         ],
       ),
     );
   }
 
   String _title() {
-    if (method == PaymentMethod.card) return "Card Information";
-    if (method == PaymentMethod.paypal) return "PayPal Information";
-    return "Google Pay";
+    switch (method) {
+      case PaymentMethod.card:
+        return "Card Information";
+      case PaymentMethod.evc:
+        return "EVC Plus Payment";
+      case PaymentMethod.edahab:
+        return "eDahab Payment";
+      case PaymentMethod.cod:
+        return "Cash on Delivery";
     }
+  }
 
   List<Widget> _cardFields() => [
         _field(
@@ -92,19 +99,24 @@ class PaymentDetailsForm extends StatelessWidget {
         ),
       ];
 
-  List<Widget> _paypalFields() => [
+  List<Widget> _phoneFields() => [
         _field(
-          controller: paypalEmailCtrl,
-          label: "PayPal Email",
-          hint: "example@gmail.com",
-          keyboardType: TextInputType.emailAddress,
-          validator: (v) => (v == null || !v.contains("@")) ? "Enter a valid email" : null,
+          controller: phoneNumberCtrl,
+          label: "Phone Number",
+          hint: "252xxxxxxx",
+          keyboardType: TextInputType.phone,
+          validator: (v) => (v == null || v.trim().length < 7) ? "Enter a valid phone number" : null,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "A payment request will be sent to this number.",
+          style: TextStyle(color: Colors.grey[600], fontSize: 12),
         ),
       ];
 
-  List<Widget> _googlePayInfo() => const [
-        Text(
-          "Google Pay will open on your device when placing the order.",
+  List<Widget> _codInfo() => [
+        const Text(
+          "Pay with cash when your order is delivered to your doorstep.",
           style: TextStyle(color: AppTheme.greyColor),
         ),
       ];
