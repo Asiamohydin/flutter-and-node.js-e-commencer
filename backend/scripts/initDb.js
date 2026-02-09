@@ -29,6 +29,11 @@ async function columnExists(schema, table, column) {
       await pool.query("ALTER TABLE users ADD COLUMN role ENUM('user','admin') DEFAULT 'user'");
     }
 
+    if (!(await columnExists(dbName, 'products', 'colors'))) {
+      console.log('Adding missing column `colors` to products table');
+      await pool.query("ALTER TABLE products ADD COLUMN colors TEXT");
+    }
+
     // Fix orders table if necessary
     const [orderCols] = await pool.query("SHOW COLUMNS FROM orders");
     const hasTotal = orderCols.some(c => c.Field === 'total');
@@ -62,6 +67,13 @@ async function columnExists(schema, table, column) {
       await pool.query("ALTER TABLE order_items CHANGE COLUMN unit_price price DECIMAL(10,2) NOT NULL");
     } else if (!hasPrice && !hasUnitPrice) {
       await pool.query("ALTER TABLE order_items ADD COLUMN price DECIMAL(10,2) NOT NULL AFTER image_url");
+    }
+
+    if (!(await columnExists(dbName, 'order_items', 'selected_color'))) {
+      await pool.query("ALTER TABLE order_items ADD COLUMN selected_color VARCHAR(100) AFTER quantity");
+    }
+    if (!(await columnExists(dbName, 'order_items', 'selected_size'))) {
+      await pool.query("ALTER TABLE order_items ADD COLUMN selected_size VARCHAR(50) AFTER selected_color");
     }
 
     // seed products if empty or update them

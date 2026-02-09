@@ -15,7 +15,7 @@ const User = {
   },
 
   async findById(id) {
-    const [rows] = await pool.query('SELECT id, name, email, role FROM users WHERE id = ?', [id]);
+    const [rows] = await pool.query('SELECT id, name, email, role, image_url FROM users WHERE id = ?', [id]);
     return rows[0];
   },
 
@@ -36,11 +36,19 @@ const User = {
     await pool.query('DELETE FROM users WHERE id = ?', [id]);
   },
 
-  async updateProfile(id, { name, password }) {
+  async updateProfile(id, { name, password, image_url }) {
     if (password) {
-      await pool.query('UPDATE users SET name = ?, password = ? WHERE id = ?', [name, password, id]);
+      if (image_url) {
+        await pool.query('UPDATE users SET name = ?, password = ?, image_url = ? WHERE id = ?', [name, password, image_url, id]);
+      } else {
+        await pool.query('UPDATE users SET name = ?, password = ? WHERE id = ?', [name, password, id]);
+      }
     } else {
-      await pool.query('UPDATE users SET name = ? WHERE id = ?', [name, id]);
+      if (image_url) {
+        await pool.query('UPDATE users SET name = ?, image_url = ? WHERE id = ?', [name, image_url, id]);
+      } else {
+        await pool.query('UPDATE users SET name = ? WHERE id = ?', [name, id]);
+      }
     }
     return this.findById(id);
   }

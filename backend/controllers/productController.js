@@ -21,8 +21,8 @@ exports.get = async (req, res, next) => {
 
 exports.create = async (req, res, next) => {
   try {
-    const { name, description, price, image_url, stock } = req.body;
-    const product = await Product.create({ name, description, price, image_url, stock });
+    const { name, description, price, image_url, stock, category } = req.body;
+    const product = await Product.create({ name, description, price, image_url, stock, category });
     res.status(201).json(product);
   } catch (err) {
     next(err);

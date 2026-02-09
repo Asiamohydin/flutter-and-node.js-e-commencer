@@ -6,14 +6,17 @@ const Order = {
     try {
       await conn.beginTransaction();
       const [orderResult] = await conn.query(
-        'INSERT INTO orders (user_id, total, payment_method) VALUES (?, ?, ?)',
-        [userId, total, paymentMethod]
+        'INSERT INTO orders (user_id, total, payment_method, status) VALUES (?, ?, ?, ?)',
+        [userId, total, paymentMethod, 'pending']
       );
       const orderId = orderResult.insertId;
       const itemPromises = items.map(item => {
+        // Decrease stock
+        conn.query('UPDATE products SET stock = stock - ? WHERE id = ?', [item.quantity, item['productId'] || item.productId]);
+
         return conn.query(
-          'INSERT INTO order_items (order_id, product_id, title, image_url, price, quantity) VALUES (?, ?, ?, ?, ?, ?)',
-          [orderId, item['productId'] || item.productId, item.title, item.imageUrl ?? item.image_url ?? '', item.price, item.quantity]
+          'INSERT INTO order_items (order_id, product_id, title, image_url, price, quantity, selected_color, selected_size) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [orderId, item['productId'] || item.productId, item.title, item.imageUrl ?? item.image_url ?? '', item.price, item.quantity, item.selectedColor || null, item.selectedSize || null]
         );
       });
       await Promise.all(itemPromises);
@@ -72,7 +75,8 @@ const Order = {
   },
 
   async getStats() {
-    const [incomeResult] = await pool.query('SELECT SUM(total) as totalIncome FROM orders');
+    // Only count completed or paid orders
+    const [incomeResult] = await pool.query("SELECT SUM(total) as totalIncome FROM orders WHERE status IN ('completed', 'paid')");
     const [countResult] = await pool.query('SELECT COUNT(*) as totalOrders FROM orders');
     const [statsResult] = await pool.query("SELECT status, COUNT(*) as count FROM orders GROUP BY status");
 

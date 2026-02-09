@@ -1,16 +1,50 @@
 const Order = require('../models/orderModel');
 const Payment = require('../models/paymentModel');
+const Product = require('../models/productModel');
 
 exports.create = async (req, res, next) => {
   try {
     const userId = req.user.id;
-    const { items, total, paymentMethod, paymentInfo } = req.body;
+    const { items, paymentMethod, paymentInfo } = req.body;
+
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(422).json({ message: 'No items provided' });
     }
-    const order = await Order.create({ userId, total, paymentMethod, items });
+
+    // Recalculate total and fetch current product data
+    let calculatedTotal = 0;
+    const finalItems = [];
+
+    for (const item of items) {
+      const product = await Product.findById(item.productId || item.id);
+      if (!product) {
+        return res.status(404).json({ message: `Product ${item.productId} not found` });
+      }
+      if (product.stock < item.quantity) {
+        return res.status(400).json({ message: `Product ${product.name} is out of stock` });
+      }
+
+      const itemTotal = Number(product.price) * Number(item.quantity);
+      calculatedTotal += itemTotal;
+
+      finalItems.push({
+        productId: product.id,
+        title: product.name,
+        image_url: product.image_url,
+        price: product.price,
+        quantity: item.quantity
+      });
+    }
+
+    const order = await Order.create({
+      userId,
+      total: calculatedTotal,
+      paymentMethod,
+      items: finalItems
+    });
+
     // create payment record (assuming synchronous capture)
-    await Payment.create({ orderId: order.id, provider: paymentMethod, provider_reference: paymentInfo['reference'] ?? null, amount: total, raw_payload: paymentInfo });
+    await Payment.create({ orderId: order.id, provider: paymentMethod, provider_reference: paymentInfo['reference'] ?? null, amount: calculatedTotal, raw_payload: paymentInfo });
     res.status(201).json(order);
   } catch (err) {
     next(err);

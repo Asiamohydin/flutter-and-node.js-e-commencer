@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS users (
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  image_url VARCHAR(1024),
   role ENUM('user','admin') DEFAULT 'user',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -14,6 +15,9 @@ CREATE TABLE IF NOT EXISTS products (
   name VARCHAR(255) NOT NULL,
   description TEXT,
   price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+  stock INT DEFAULT 0,
+  category VARCHAR(100) DEFAULT 'General',
+  image_url VARCHAR(1024),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -20,7 +20,7 @@ exports.register = async (req, res, next) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hashed });
     const token = generateToken(user);
-    res.status(201).json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
+    res.status(201).json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, image_url: user.image_url }, token });
   } catch (err) {
     next(err);
   }
@@ -38,7 +38,7 @@ exports.login = async (req, res, next) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials' });
     const token = generateToken(user);
-    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role }, token });
+    res.json({ success: true, user: { id: user.id, name: user.name, email: user.email, role: user.role, image_url: user.image_url }, token });
   } catch (err) {
     next(err);
   }
@@ -46,12 +46,12 @@ exports.login = async (req, res, next) => {
 
 exports.updateMe = async (req, res, next) => {
   try {
-    const { name, password } = req.body;
+    const { name, password, image_url } = req.body;
     let hashed = undefined;
     if (password) {
       hashed = await bcrypt.hash(password, 10);
     }
-    const user = await User.updateProfile(req.user.id, { name, password: hashed });
+    const user = await User.updateProfile(req.user.id, { name, password: hashed, image_url });
     res.json({ success: true, user });
   } catch (err) {
     next(err);
