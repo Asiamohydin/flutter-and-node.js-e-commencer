@@ -279,7 +279,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(item['title'] ?? 'Unknown Product', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                            Text('$quantity x \$${price.toStringAsFixed(2)}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                            Row(
+                              children: [
+                                Text('$quantity x \$${price.toStringAsFixed(2)}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                                if (item['selected_color'] != null || item['selected_size'] != null) ...[
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "[${item['selected_color'] ?? ''} ${item['selected_size'] ?? ''}]".trim(),
+                                    style: TextStyle(fontSize: 11, color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
                       ),

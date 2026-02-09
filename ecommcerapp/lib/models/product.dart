@@ -8,6 +8,7 @@ class Product {
   final double rating;
   final bool isFavorite;
   final String category;
+  final List<String> colors;
 
   Product({
     required this.id,
@@ -19,6 +20,7 @@ class Product {
     this.rating = 4.5,
     this.isFavorite = false,
     this.category = 'General',
+    this.colors = const [],
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -31,6 +33,7 @@ class Product {
       stock: json['stock'] ?? 0,
       rating: double.tryParse(json['rating']?.toString() ?? '') ?? 4.5,
       category: json['category'] ?? 'General',
+      colors: json['colors'] != null ? List<String>.from(json['colors']) : [],
     );
   }
 }

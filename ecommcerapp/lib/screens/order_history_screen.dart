@@ -135,6 +135,11 @@ class OrderHistoryScreen extends StatelessWidget {
                                         '$qty x \$${price.toStringAsFixed(2)}',
                                         style: const TextStyle(color: AppTheme.greyColor, fontSize: 12),
                                       ),
+                                      if (item['selected_color'] != null || item['selected_size'] != null)
+                                        Text(
+                                          "${item['selected_color'] ?? ''} ${item['selected_size'] ?? ''}".trim(),
+                                          style: const TextStyle(color: AppTheme.greyColor, fontSize: 11),
+                                        ),
                                     ],
                                   ),
                                 ),

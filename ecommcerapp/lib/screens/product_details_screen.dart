@@ -16,16 +16,19 @@ class ProductDetailsScreen extends StatefulWidget {
 }
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
-  int _selectedSize = 2; 
-  int _selectedColor = 0;
+  String? _selectedSize; 
+  String? _selectedColorName;
 
   final List<String> _sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-  final List<Color> _colors = [
-    AppTheme.primaryColor,
-    Colors.black,
-    Colors.grey,
-    Colors.brown,
-  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSize = _sizes[1]; // Default to M
+    if (widget.product.colors.isNotEmpty) {
+      _selectedColorName = widget.product.colors[0];
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,74 +167,54 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     const SizedBox(height: 15),
                     FadeInUp(
                       delay: const Duration(milliseconds: 200),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: List.generate(_sizes.length, (index) {
-                            bool isSelected = _selectedSize == index;
-                            return GestureDetector(
-                              onTap: () => setState(() => _selectedSize = index),
-                              child: Container(
-                                margin: const EdgeInsets.only(right: 15),
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  color: isSelected ? AppTheme.primaryColor : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(15),
-                                  border: Border.all(
-                                    color: isSelected ? Colors.transparent : Colors.grey.withOpacity(0.3),
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    _sizes[index],
-                                    style: TextStyle(
-                                      color: isSelected ? Colors.white : Colors.black,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
+                      child: Wrap(
+                        spacing: 12,
+                        children: _sizes.map((size) {
+                          bool isSelected = _selectedSize == size;
+                          return ChoiceChip(
+                            label: Text(size),
+                            selected: isSelected,
+                            onSelected: (selected) {
+                              setState(() {
+                                _selectedSize = size;
+                              });
+                            },
+                            selectedColor: AppTheme.primaryColor,
+                            labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    if (widget.product.colors.isNotEmpty) ...[
+                      const SizedBox(height: 25),
+                      FadeInUp(
+                        child: const Text(
+                          'Select Color',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 25),
-                    FadeInUp(
-                      child: const Text(
-                        'Select Color',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      const SizedBox(height: 15),
+                      FadeInUp(
+                        delay: const Duration(milliseconds: 300),
+                        child: Wrap(
+                          spacing: 12,
+                          children: widget.product.colors.map((colorName) {
+                            bool isSelected = _selectedColorName == colorName;
+                            return ChoiceChip(
+                              label: Text(colorName),
+                              selected: isSelected,
+                              onSelected: (selected) {
+                                setState(() {
+                                  _selectedColorName = colorName;
+                                });
+                              },
+                              selectedColor: AppTheme.primaryColor,
+                              labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                            );
+                          }).toList(),
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 15),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 300),
-                      child: Row(
-                        children: List.generate(_colors.length, (index) {
-                          bool isSelected = _selectedColor == index;
-                          return GestureDetector(
-                            onTap: () => setState(() => _selectedColor = index),
-                            child: Container(
-                              margin: const EdgeInsets.only(right: 15),
-                              width: 35,
-                              height: 35,
-                              decoration: BoxDecoration(
-                                color: _colors[index],
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: isSelected ? Colors.white : Colors.transparent,
-                                  width: 3,
-                                ),
-                                boxShadow: isSelected
-                                    ? [BoxShadow(color: _colors[index].withOpacity(0.4), blurRadius: 10, spreadRadius: 2)]
-                                    : null,
-                              ),
-                            ),
-                          );
-                        }),
-                      ),
-                    ),
+                    ],
                     const SizedBox(height: 120), 
                   ],
                 ),
@@ -267,10 +250,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             Expanded(
               child: GestureDetector(
                 onTap: widget.product.stock <= 0 ? null : () {
-                  Provider.of<CartProvider>(context, listen: false).addToCart(widget.product);
+                  Provider.of<CartProvider>(context, listen: false).addToCart(
+                    widget.product,
+                    color: _selectedColorName,
+                    size: _selectedSize,
+                  );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('${widget.product.name} added to cart!'),
+                      content: Text('${widget.product.name} Added!'),
                       behavior: SnackBarBehavior.floating,
                       backgroundColor: AppTheme.primaryColor,
                       action: SnackBarAction(

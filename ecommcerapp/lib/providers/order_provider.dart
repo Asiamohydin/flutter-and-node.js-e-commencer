@@ -58,6 +58,8 @@ class OrderProvider extends ChangeNotifier {
         "price": p.price,
         "quantity": item.quantity,
         "imageUrl": p.imageUrl,
+        "selectedColor": item.selectedColor,
+        "selectedSize": item.selectedSize,
       };
     }).toList();
 

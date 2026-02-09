@@ -81,6 +81,14 @@ class CartScreen extends StatelessWidget {
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                     ),
                                     const SizedBox(height: 5),
+                                    if (item.selectedColor != null || item.selectedSize != null)
+                                      Padding(
+                                        padding: const EdgeInsets.only(bottom: 5),
+                                        child: Text(
+                                          "${item.selectedColor ?? ''} ${item.selectedSize ?? ''}".trim(),
+                                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        ),
+                                      ),
                                     Text('\$${item.product.price}', style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
                                   ],
                                 ),
@@ -88,7 +96,7 @@ class CartScreen extends StatelessWidget {
                               Row(
                                 children: [
                                   GestureDetector(
-                                    onTap: () => cart.updateQuantity(item.product.id, -1),
+                                    onTap: () => cart.updateQuantity(item.key, -1),
                                     child: Container(
                                       padding: const EdgeInsets.all(5),
                                       decoration: BoxDecoration(
@@ -102,7 +110,7 @@ class CartScreen extends StatelessWidget {
                                   Text(item.quantity.toString(), style: const TextStyle(fontWeight: FontWeight.bold)),
                                   const SizedBox(width: 15),
                                   GestureDetector(
-                                    onTap: () => cart.updateQuantity(item.product.id, 1),
+                                    onTap: () => cart.updateQuantity(item.key, 1),
                                     child: Container(
                                       padding: const EdgeInsets.all(5),
                                       decoration: BoxDecoration(

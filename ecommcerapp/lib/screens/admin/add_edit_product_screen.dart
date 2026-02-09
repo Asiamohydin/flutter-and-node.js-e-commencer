@@ -24,9 +24,15 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   late TextEditingController _priceCtrl;
   late TextEditingController _imageCtrl;
   late TextEditingController _stockCtrl;
+  late TextEditingController _colorCtrl;
   String? _selectedCategory;
+  List<String> _selectedColors = [];
   bool _isLoading = false;
   bool _isUploading = false;
+
+  final List<String> _predefinedColors = [
+    'Red', 'Blue', 'Black', 'White', 'Green', 'Yellow', 'Purple', 'Orange', 'Grey', 'Pink', 'Brown', 'Gold', 'Silver'
+  ];
 
   @override
   void initState() {
@@ -36,7 +42,19 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     _priceCtrl = TextEditingController(text: widget.product?.price.toString() ?? '');
     _imageCtrl = TextEditingController(text: widget.product?.imageUrl ?? '');
     _stockCtrl = TextEditingController(text: widget.product?.stock.toString() ?? '0');
+    _colorCtrl = TextEditingController();
     _selectedCategory = widget.product?.category ?? 'General';
+    _selectedColors = List<String>.from(widget.product?.colors ?? []);
+  }
+
+  void _addColor(String color) {
+    if (color.isEmpty) return;
+    if (!_selectedColors.contains(color)) {
+      setState(() {
+        _selectedColors.add(color);
+      });
+    }
+    _colorCtrl.clear();
   }
 
   Future<void> _pickAndUploadImage() async {
@@ -78,6 +96,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       'image_url': _imageCtrl.text.trim(),
       'stock': int.parse(_stockCtrl.text),
       'category': _selectedCategory ?? 'General',
+      'colors': _selectedColors,
     };
 
     dynamic result;
@@ -210,6 +229,76 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                 ),
               ],
               
+              const SizedBox(height: 20),
+              
+              const Text("Available Colors", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const SizedBox(height: 10),
+              if (_selectedColors.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  children: _selectedColors.map((color) => Chip(
+                    label: Text(color),
+                    deleteIcon: const Icon(Icons.close, size: 16),
+                    onDeleted: () {
+                      setState(() {
+                        _selectedColors.remove(color);
+                      });
+                    },
+                  )).toList(),
+                ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _colorCtrl,
+                      decoration: InputDecoration(
+                        hintText: "Add custom color (e.g. Gold)",
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+                      ),
+                      onSubmitted: _addColor,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton(
+                    onPressed: () => _addColor(_colorCtrl.text.trim()),
+                    icon: const Icon(Icons.add_circle, color: AppTheme.primaryColor, size: 30),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              const Text("Quick Select:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const SizedBox(height: 5),
+              SizedBox(
+                height: 40,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _predefinedColors.length,
+                  itemBuilder: (context, index) {
+                    final color = _predefinedColors[index];
+                    final isSelected = _selectedColors.contains(color);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(color),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            _addColor(color);
+                          } else {
+                            setState(() {
+                              _selectedColors.remove(color);
+                            });
+                          }
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+
               const SizedBox(height: 20),
               _buildField("Stock", _stockCtrl, Iconsax.archive, "Enter stock count", keyboardType: TextInputType.number),
               const SizedBox(height: 50),

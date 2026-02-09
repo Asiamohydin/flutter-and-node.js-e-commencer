@@ -17,37 +17,44 @@ class CartProvider extends ChangeNotifier {
     return total;
   }
 
-  void addToCart(Product product) {
+  void addToCart(Product product, {String? color, String? size}) {
     if (product.stock <= 0) return;
 
-    final id = product.id;
+    // Unique key considering variants
+    final key = "${product.id}_${color ?? ''}_${size ?? ''}";
 
-    if (_items.containsKey(id)) {
-      if (_items[id]!.quantity < product.stock) {
-        _items[id] = _items[id]!.copyWith(quantity: _items[id]!.quantity + 1);
+    if (_items.containsKey(key)) {
+      if (_items[key]!.quantity < product.stock) {
+        _items[key] = _items[key]!.copyWith(quantity: _items[key]!.quantity + 1);
       }
     } else {
-      _items[id] = CartItem(product: product, quantity: 1);
+      _items[key] = CartItem(
+        product: product, 
+        quantity: 1,
+        key: key,
+        selectedColor: color,
+        selectedSize: size,
+      );
     }
     notifyListeners();
   }
 
-  void updateQuantity(String productId, int change) {
-    if (!_items.containsKey(productId)) return;
+  void updateQuantity(String itemKey, int change) {
+    if (!_items.containsKey(itemKey)) return;
 
-    final current = _items[productId]!;
+    final current = _items[itemKey]!;
     final newQty = current.quantity + change;
 
     if (newQty <= 0) {
-      _items.remove(productId);
+      _items.remove(itemKey);
     } else {
-      _items[productId] = current.copyWith(quantity: newQty);
+      _items[itemKey] = current.copyWith(quantity: newQty);
     }
     notifyListeners();
   }
 
-  void removeItem(String productId) {
-    _items.remove(productId);
+  void removeItem(String itemKey) {
+    _items.remove(itemKey);
     notifyListeners();
   }
 
